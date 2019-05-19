@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t georgimitev/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run georgimitev/react-test npm test
+
+after_success:
+  - docker build -t georgimitev/multi-client ./client
+  - docker build -t georgimitev/multi-nginx ./nginx
+  - docker build -t georgimitev/multi-server ./server
+  - docker build -t georgimitev/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push georgimitev/multi-client
+  - docker push georgimitev/multi-nginx
+  - docker push georgimitev/multi-server
+  - docker push georgimitev/multi-worker
